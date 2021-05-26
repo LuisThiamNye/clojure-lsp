@@ -33,16 +33,29 @@
      URLDecoder
      JarURLConnection]))
 
+(defmacro dbl
+  [ms p body]
+  (if false
+    body
+    `(let [before# (System/currentTimeMillis)
+           r# ~body
+           t# (- (System/currentTimeMillis) before#)]
+       (when (< 0 ~ms t#)
+         (println "Time Tripped:" t# "for:" ~p))
+       r#)))
+
 (def ^:private full-file-range
   (shared/->range {:row 1 :col 1 :end-row 1000000 :end-col 1000000}))
 
 (defmacro process-after-changes [& body]
   `(let [~'_time (System/nanoTime)]
      (loop []
-       (if (> (quot (- (System/nanoTime) ~'_time) 1000000) 60000) ; one minute timeout
+       (if (dbl 1 "process-after-changes maths"
+                (> (quot (- (System/nanoTime) ~'_time) 1000000) 60000)) ; one minute timeout
          (log/warn "Timeout waiting for changes for body")
          (if (:processing-changes @db/db)
-           (recur)
+           (do (log/info "doing a loop of process after changges")
+               (recur))
            ~@body)))))
 
 (defn initialize [project-root client-capabilities client-settings]
@@ -210,6 +223,19 @@
               {:range (shared/->range (-> form-loc z/node meta))
                :new-text (n/string (cljfmt/reformat-form (z/node form-loc) cljfmt-settings))})
             forms))))
+
+(defn range-formatting-debug [doc-id format-pos]
+  (process-after-changes
+    (let [{:keys [text]} (get-in @db/db [:documents doc-id])
+          cljfmt-settings (get-in @db/db [:settings :cljfmt])
+          forms (dbl -1 "find top forms in range"
+                     (parser/find-top-forms-in-range text format-pos))
+          res (mapv (fn [form-loc]
+                      {:range (dbl 1 "get shared range" (shared/->range (-> form-loc z/node meta)))
+                       :new-text (n/string (dbl 3 "cljfmt reformat"
+                                                (cljfmt/reformat-form (z/node form-loc) cljfmt-settings)))})
+                    forms)]
+      res)))
 
 (defmulti extension (fn [method _] method))
 
