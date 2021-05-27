@@ -1,13 +1,14 @@
 (ns clojure-lsp.shared
   (:require
-   [clojure-lsp.db :as db]
-   [clojure.core.async :refer [<! >! alts! chan go-loop timeout]]
-   [clojure.java.shell :as shell]
-   [clojure.string :as string]
-   [taoensso.timbre :as log])
+    [clojure-lsp.db :as db]
+    [clojure.core.async :refer [<! >! alts! chan go-loop timeout]]
+    [clojure.java.shell :as shell]
+    [clojure.string :as string]
+    [taoensso.timbre :as log]
+    [clojure.stacktrace :as stacktrace])
   (:import
-   [java.net URI]
-   [java.nio.file Paths]))
+    [java.net URI]
+    [java.nio.file Paths]))
 
 (defn assoc-some
   "Assoc[iate] if the value is not nil. "
@@ -72,22 +73,30 @@
         (string/starts-with? uri "zipfile:/"))))
 
 (defn uri->filename [uri]
-  (if-let [[_ jar-file nested-file] (re-find #"^zipfile:/?/?(.*\.jar)::(.*)" uri)]
-    (str (when-not (string/starts-with? jar-file "/") "/")
-         jar-file
-         ":"
-         nested-file)
-    (.getPath (URI. uri))))
+  (when-not (clojure.string/includes? uri " ")
+    (prn "not space")
+    (stacktrace/print-stack-trace (Exception. "it not had a space")))
+  (let [uri-obj (URI. uri)
+        path (.getPath uri-obj)]
+    (if-let [[_ jar-file nested-file] (and (= "zipfile" (.getScheme uri-obj))
+                                           (re-find #"^(.*\.jar)::(.*)" path))]
+      (str jar-file ":" nested-file)
+      (or (str (string/replace uri #"^[a-z]+://" "")) path))))
+
+(defn- uri-encode [scheme path]
+  #_(.toString (URI. scheme ""
+                     (str (when-not (string/starts-with? path "/") "/") path)
+                     nil))
+  (str scheme "://"
+        (str (when-not (string/starts-with? path "/") "/") path)))
 
 (defn filename->uri [^String filename]
   (let [jar-scheme? (= "jar" (get-in @db/db [:settings :dependency-scheme]))]
     (if-let [[_ jar-file nested-file] (re-find #"^(.*\.jar):(.*)" filename)]
       (if jar-scheme?
-        (str "jar:file:///" jar-file "!/" nested-file)
-        (str "zipfile://" jar-file "::" nested-file))
-      (if (string/starts-with? filename "/")
-        (str "file://" filename)
-        (str "file:///" filename)))))
+        (uri-encode "jar:file" (str jar-file "!/" nested-file))
+        (uri-encode "zipfile" (str jar-file "::" nested-file)))
+      (uri-encode "file" filename))))
 
 (defn uri->project-related-path [uri project-root]
   (string/replace uri project-root ""))
