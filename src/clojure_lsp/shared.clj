@@ -8,6 +8,7 @@
     [clojure.stacktrace :as stacktrace])
   (:import
     [java.net URI]
+    [java.net URL]
     [java.nio.file Paths]))
 
 (defn assoc-some
@@ -73,19 +74,22 @@
         (string/starts-with? uri "zipfile:/"))))
 
 (defn uri->filename [uri]
-  (let [uri-obj (URI. uri)
-        path (.getPath uri-obj)]
-    (if-let [[_ jar-file nested-file] (and (= "zipfile" (.getScheme uri-obj))
-                                           (re-find #"^(.*\.jar)::(.*)" path))]
-      (str jar-file ":" nested-file)
-      path)))
+  (if (string/starts-with? uri "jar:")
+    (let [conn (.openConnection (URL. uri))
+          jar-file (-> conn .getJarFileURL .getFile)]
+      (str jar-file \: (.getEntryName conn)))
+    (let [uri-obj (URI. uri)
+          path (.getPath uri-obj)
+          [_ jar-file nested-file] (when (= "zipfile" (.getScheme uri-obj))
+                                        (re-find #"^(.*\.jar)::(.*)" path))]
+      (if jar-file
+        (str jar-file \: nested-file)
+        path))))
 
 (defn- uri-encode [scheme path]
-  (try (.toString (URI. scheme ""
-                    (str (when-not (string/starts-with? path "/") "/") path)
-                    nil))
-       (catch Exception err
-         (log/error err))))
+  (.toString (URI. scheme ""
+                   (str (when-not (string/starts-with? path "/") "/") path)
+                   nil)))
 
 (defn filename->uri [^String filename]
   (let [jar-scheme? (= "jar" (get-in @db/db [:settings :dependency-scheme]))]
@@ -96,7 +100,7 @@
       (uri-encode "file" filename))))
 
 (defn uri->project-related-path [uri project-root]
-  (string/replace uri project-root ""))
+  (string/replace (.getPath (URI. uri)) (.getPath (URI. project-root)) ""))
 
 (defn ->range [{:keys [name-row name-end-row name-col name-end-col row end-row col end-col] :as element}]
   (when element

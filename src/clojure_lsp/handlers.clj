@@ -30,7 +30,6 @@
   (:import
     [java.net
      URL
-     URLDecoder
      JarURLConnection]))
 
 (def ^:private full-file-range
