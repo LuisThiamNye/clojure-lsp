@@ -52,8 +52,7 @@
 
 (defn document->decoded-uri [^TextDocumentIdentifier document]
   (-> document
-      .getUri
-      URLDecoder/decode))
+      .getUri))
 
 (defmethod j/from-java DiagnosticSeverity [^DiagnosticSeverity instance]
   (-> instance .name .toLowerCase keyword))

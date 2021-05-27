@@ -118,7 +118,6 @@
 
 (defn rename
   [uri new-name row col]
-  (prn "rename uri" uri)
   (let [filename (shared/uri->filename uri)
         references (q/find-references-from-cursor (:analysis @db/db) filename row col true)
         definition (first (filter (comp #{:locals :var-definitions :namespace-definitions :namespace-alias :keywords} :bucket) references))

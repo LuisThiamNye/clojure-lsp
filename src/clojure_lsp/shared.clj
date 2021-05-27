@@ -73,22 +73,19 @@
         (string/starts-with? uri "zipfile:/"))))
 
 (defn uri->filename [uri]
-  (when-not (clojure.string/includes? uri " ")
-    (prn "not space")
-    (stacktrace/print-stack-trace (Exception. "it not had a space")))
   (let [uri-obj (URI. uri)
         path (.getPath uri-obj)]
     (if-let [[_ jar-file nested-file] (and (= "zipfile" (.getScheme uri-obj))
                                            (re-find #"^(.*\.jar)::(.*)" path))]
       (str jar-file ":" nested-file)
-      (or (str (string/replace uri #"^[a-z]+://" "")) path))))
+      path)))
 
 (defn- uri-encode [scheme path]
-  #_(.toString (URI. scheme ""
-                     (str (when-not (string/starts-with? path "/") "/") path)
-                     nil))
-  (str scheme "://"
-        (str (when-not (string/starts-with? path "/") "/") path)))
+  (try (.toString (URI. scheme ""
+                    (str (when-not (string/starts-with? path "/") "/") path)
+                    nil))
+       (catch Exception err
+         (log/error err))))
 
 (defn filename->uri [^String filename]
   (let [jar-scheme? (= "jar" (get-in @db/db [:settings :dependency-scheme]))]
