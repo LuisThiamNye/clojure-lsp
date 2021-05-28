@@ -12,7 +12,7 @@
 (defn ^:private namespace->uri [namespace source-paths filename]
   (let [file-type (shared/uri->file-type filename)]
     (shared/filename->uri
-      (shared/join-filepaths (some #(string/starts-with? filename %) source-paths)
+      (shared/join-filepaths (first (filter #(string/starts-with? filename %) source-paths))
                              (-> namespace
                                  (string/replace "." (System/getProperty "file.separator"))
                                  (string/replace "-" "_")

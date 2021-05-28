@@ -5,8 +5,7 @@
     [clojure.java.io :as io]
     [clojure.java.shell :as shell]
     [clojure.string :as string]
-    [taoensso.timbre :as log]
-    [clojure.stacktrace :as stacktrace])
+    [taoensso.timbre :as log])
   (:import
     [java.net URI]
     [java.net URL]

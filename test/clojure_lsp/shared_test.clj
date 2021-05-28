@@ -26,8 +26,8 @@
     (is (= "jar:file:///home/some/.m2/some-jar.jar!/clojure/core.clj"
            (shared/filename->uri "/home/some/.m2/some-jar.jar:clojure/core.clj"))))
   (testing "Windows URIs"
-    (is (= "file:///c:/c.clj"
-           (shared/filename->uri "c:\\c.clj")))))
+    (is (= (when windows? "file:///c:/c.clj")
+           (when windows? (shared/filename->uri "c:\\c.clj"))))))
 
 (deftest uri->filename
   (testing "should decode special characters in file URI"
@@ -50,7 +50,7 @@
 
 (deftest relativize-filepath
   (is (= (file-path "some/path.clj")
-         (shared/uri->relative-filepath
+         (shared/relativize-filepath
           (file-path "/User/rich/some/path.clj")
           (file-path "/User/rich")))))
 
@@ -61,8 +61,8 @@
 (deftest join-filepaths
   (is (= (file-path "/users/melon/toasty/onion")
          (if windows?
-           (shared/join-filepaths "c:\\users" "/" "melon\\toasty" "onion")
-           (shared/join-filepaths "/users" "/" "melon/toasty" "onion")))))
+           (shared/join-filepaths "c:\\users" "melon\\toasty" "onion")
+           (shared/join-filepaths "/users" "melon/toasty" "onion")))))
 
 (deftest ->range-test
   (testing "should subtract 1 from row and col values"
