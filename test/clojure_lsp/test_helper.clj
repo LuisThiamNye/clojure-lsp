@@ -8,6 +8,8 @@
     [clojure.test :refer [is use-fixtures]]
     [taoensso.timbre :as log]))
 
+(def windows? (string/starts-with? (System/getProperty "os.name") "Windows"))
+
 (defn code [& strings] (string/join "\n" strings))
 
 (defn reset-db-after-test []
@@ -82,3 +84,12 @@
 (defn ->range [[row col] [end-row end-col]]
   {:start {:line (dec row) :character (dec col)}
    :end {:line (dec end-row) :character (dec end-col)}})
+
+(defn file-path [path]
+  (cond-> path windows?
+          (-> (string/replace #"^/" "C:\\")
+              (string/replace "/" "\\"))))
+
+(defn file-uri [uri]
+  (cond-> uri windows?
+          (string/replace #"^file:///(?!\w:/)" "file:///C:/")))

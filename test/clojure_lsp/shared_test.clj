@@ -1,66 +1,60 @@
 (ns clojure-lsp.shared-test
   (:require
-   [clojure-lsp.db :as db]
-   [clojure-lsp.shared :as shared]
-   [clojure.string :as string]
-   [clojure.test :refer [deftest is testing]]))
-
-(def windows? (clojure.string/starts-with? (System/getProperty "os.name") "Windows"))
-
-(defn file-path [path]
-  (cond-> path windows?
-          (-> (string/replace "^/" "c:\\")
-              (string/replace "/" "\\"))))
+    [clojure-lsp.db :as db]
+    [clojure-lsp.shared :as shared]
+    [clojure-lsp.test-helper :as h]
+    [clojure.string :as string]
+    [clojure.test :refer [deftest is testing]]))
 
 (deftest filename->uri
   (testing "when it is not a jar"
     (reset! db/db {})
-    (is (= "file:///some%20project/foo/bar_baz.clj"
+    (is (= (if h/windows? "file:///C:/some%20project/foo/bar_baz.clj" "file:///some%20project/foo/bar_baz.clj")
            (shared/filename->uri "/some project/foo/bar_baz.clj"))))
   (testing "when it is a jar via zipfile"
     (reset! db/db {})
-    (is (= "zipfile:///home/some/.m2/some-jar.jar::clojure/core.clj"
+    (is (= (if h/windows? "zipfile:///C:/home/some/.m2/some-jar.jar::clojure/core.clj" "zipfile:///home/some/.m2/some-jar.jar::clojure/core.clj")
            (shared/filename->uri "/home/some/.m2/some-jar.jar:clojure/core.clj"))))
   (testing "when it is a jar via jarfile"
     (reset! db/db {:settings {:dependency-scheme "jar"}})
-    (is (= "jar:file:///home/some/.m2/some-jar.jar!/clojure/core.clj"
+    (is (= (if h/windows? "jar:file:///C:/home/some/.m2/some-jar.jar!/clojure/core.clj" "jar:file:///home/some/.m2/some-jar.jar!/clojure/core.clj")
            (shared/filename->uri "/home/some/.m2/some-jar.jar:clojure/core.clj"))))
   (testing "Windows URIs"
-    (is (= (when windows? "file:///c:/c.clj")
-           (when windows? (shared/filename->uri "c:\\c.clj"))))))
+    (is (= (when h/windows? "file:///c:/c.clj")
+           (when h/windows? (shared/filename->uri "c:\\c.clj"))))))
 
 (deftest uri->filename
   (testing "should decode special characters in file URI"
-    (is (= (file-path "/path+/encoded characters!")
+    (is (= (h/file-path "/path+/encoded characters!")
            (shared/uri->filename "file:///path%2B/encoded%20characters%21"))))
   (testing "when it is a jar via zipfile"
-    (is (= (file-path "/something.jar:something/file.cljc")
+    (is (= (h/file-path "/something.jar:something/file.cljc")
            (shared/uri->filename "zipfile:///something.jar::something/file.cljc"))))
   (testing "when it is a jar via zipfile with encoding"
-    (is (= (file-path "/something.jar:something/file.cljc")
+    (is (= (h/file-path "/something.jar:something/file.cljc")
            (shared/uri->filename "zipfile:///something.jar%3A%3Asomething/file.cljc"))))
   (testing "when it is a jar via jarfile"
-    (is (= (str (file-path "/Users/clojure-1.9.0.jar") ":clojure/string.clj")
+    (is (= (str (h/file-path "/Users/clojure-1.9.0.jar") ":clojure/string.clj")
            (shared/uri->filename "jar:file:///Users/clojure-1.9.0.jar!/clojure/string.clj"))))
   (testing "Windows URIs"
-    (is (= (when windows? "c:\\c.clj")
-           (when windows? (shared/uri->filename "file:/c:/c.clj"))))
-    (is (= (when windows? "c:\\c.clj")
-           (when windows? (shared/uri->filename "file:///c:/c.clj"))))))
+    (is (= (when h/windows? "c:\\c.clj")
+           (when h/windows? (shared/uri->filename "file:/c:/c.clj"))))
+    (is (= (when h/windows? "c:\\c.clj")
+           (when h/windows? (shared/uri->filename "file:///c:/c.clj"))))))
 
 (deftest relativize-filepath
-  (is (= (file-path "some/path.clj")
+  (is (= (h/file-path "some/path.clj")
          (shared/relativize-filepath
-          (file-path "/User/rich/some/path.clj")
-          (file-path "/User/rich")))))
+           (h/file-path "/User/rich/some/path.clj")
+           (h/file-path "/User/rich")))))
 
 (deftest uri->relative-filepath
-  (is (= (file-path "some /path.clj")
-         (shared/uri->relative-filepath "file:///User/rich%20/some%20/path.clj" "file:///User/rich%20"))))
+  (is (= (h/file-path "some foo/path.clj")
+         (shared/uri->relative-filepath "file:///User/ricky%20bar/some%20foo/path.clj" "file:///User/ricky%20bar"))))
 
 (deftest join-filepaths
-  (is (= (file-path "/users/melon/toasty/onion")
-         (if windows?
+  (is (= (h/file-path "/users/melon/toasty/onion")
+         (if h/windows?
            (shared/join-filepaths "c:\\users" "melon\\toasty" "onion")
            (shared/join-filepaths "/users" "melon/toasty" "onion")))))
 
