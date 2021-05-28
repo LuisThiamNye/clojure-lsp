@@ -9,4 +9,6 @@
   (is (= ""
          (interop/document->uri (TextDocumentIdentifier. ""))))
   (is (= "http://example.com/foo"
-         (interop/document->uri (TextDocumentIdentifier. "http://example.com/foo")))))
+         (interop/document->uri (TextDocumentIdentifier. "http://example.com/foo"))))
+  (is (= "file:///foo/bar/c.clj"
+         (interop/document->uri (TextDocumentIdentifier. "file:///foo/bar/c.clj")))))

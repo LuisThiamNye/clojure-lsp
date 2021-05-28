@@ -12,13 +12,11 @@
 (defn ^:private namespace->uri [namespace source-paths filename]
   (let [file-type (shared/uri->file-type filename)]
     (shared/filename->uri
-      (str (first (filter #(string/starts-with? filename %) source-paths))
-           "/"
-           (-> namespace
-               (string/replace "." "/")
-               (string/replace "-" "_"))
-           "."
-           (name file-type)))))
+      (shared/join-filepaths (some #(string/starts-with? filename %) source-paths)
+                             (-> namespace
+                                 (string/replace "." (System/getProperty "file.separator"))
+                                 (string/replace "-" "_")
+                                 (str "." (name file-type)))))))
 
 (defn ^:private rename-keyword [replacement {:keys [ns alias name filename
                                                     name-col name-end-col
@@ -112,7 +110,7 @@
   [definition references source-paths]
   (and (seq references)
        (or (not (seq source-paths))
-           (some #(string/starts-with? (:filename definition) %) source-paths))
+         (some #(string/starts-with? (:filename definition) %) source-paths))
        (not (and (= :keywords (:bucket definition))
                  (not (:ns definition))))))
 
