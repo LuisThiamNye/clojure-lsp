@@ -21,7 +21,7 @@
        (if (next kvs)
          (recur ret (first kvs) (second kvs) (nnext kvs))
          (throw (IllegalArgumentException.
-                  "assoc-some expects even number of arguments after map/vector, found odd number")))
+                 "assoc-some expects even number of arguments after map/vector, found odd number")))
        ret))))
 
 (def windows-os?

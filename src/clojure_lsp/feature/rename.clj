@@ -110,7 +110,7 @@
   [definition references source-paths]
   (and (seq references)
        (or (not (seq source-paths))
-         (some #(string/starts-with? (:filename definition) %) source-paths))
+           (some #(string/starts-with? (:filename definition) %) source-paths))
        (not (and (= :keywords (:bucket definition))
                  (not (:ns definition))))))
 
