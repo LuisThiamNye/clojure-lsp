@@ -14,15 +14,15 @@
 (deftest sqlite-db-file-setting
   (testing "when not set"
     (reset! db/db {})
-    (is (= (-> default-db-path io/file .getAbsolutePath) (#'db/get-sqlite-db-file-path project-path))))
+    (is (= default-db-path (#'db/get-sqlite-db-file-path project-path))))
   (testing "when set to relative path"
     (let [settings-path "subdir/sqlite.db"
-          expected (str (io/file project-path settings-path))]
+          expected (.getAbsolutePath (io/file project-path settings-path))]
       (reset! db/db {:settings {:sqlite-db-path settings-path}})
-      (is (= (-> expected io/file .getAbsolutePath)
+      (is (= expected
              (#'db/get-sqlite-db-file-path project-path)))))
   (testing "when set to absolute path"
     (let [settings-path (h/file-path "/db-dir/sqlite.db")]
       (reset! db/db {:settings {:sqlite-db-path settings-path}})
-      (is (= (-> settings-path io/file .getAbsolutePath)
+      (is (= settings-path
              (#'db/get-sqlite-db-file-path project-path))))))
