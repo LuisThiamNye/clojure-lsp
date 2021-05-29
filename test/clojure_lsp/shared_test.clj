@@ -55,7 +55,7 @@
 (deftest join-filepaths
   (is (= (h/file-path "/users/melon/toasty/onion")
          (if h/windows?
-           (shared/join-filepaths "c:\\users" "melon\\toasty" "onion")
+           (shared/join-filepaths "C:\\users" "melon\\toasty" "onion")
            (shared/join-filepaths "/users" "melon/toasty" "onion")))))
 
 (deftest ->range-test
