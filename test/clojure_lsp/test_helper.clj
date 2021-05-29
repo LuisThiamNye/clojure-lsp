@@ -10,6 +10,15 @@
 
 (def windows? (string/starts-with? (System/getProperty "os.name") "Windows"))
 
+(defn file-path [path]
+  (cond-> path windows?
+          (-> (string/replace #"^/" "C:\\\\")
+              (string/replace "/" "\\"))))
+
+(defn file-uri [uri]
+  (cond-> uri windows?
+          (string/replace #"^file:///(?!\w:/)" "file:///C:/")))
+
 (defn code [& strings] (string/join "\n" strings))
 
 (defn reset-db-after-test []
@@ -64,7 +73,7 @@
 
 (defn load-code-and-locs [code & [filename]]
   (let [[code positions] (positions-from-text code)
-        filename (or filename "file:///a.clj")]
+        filename (or filename (file-uri "file:///a.clj"))]
     (handlers/did-open {:textDocument {:uri filename :text code}})
     positions))
 
@@ -84,12 +93,3 @@
 (defn ->range [[row col] [end-row end-col]]
   {:start {:line (dec row) :character (dec col)}
    :end {:line (dec end-row) :character (dec end-col)}})
-
-(defn file-path [path]
-  (cond-> path windows?
-          (-> (string/replace #"^/" "C:\\")
-              (string/replace "/" "\\"))))
-
-(defn file-uri [uri]
-  (cond-> uri windows?
-          (string/replace #"^file:///(?!\w:/)" "file:///C:/")))

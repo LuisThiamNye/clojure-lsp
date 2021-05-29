@@ -17,14 +17,14 @@
   (testing "opening a existing file"
     (let [_ (h/load-code-and-locs "(ns a) (when)")
           diagnostics (h/diagnostics-or-timeout)]
-      (is (some? (get-in @db/db [:analysis "/a.clj"])))
+      (is (some? (get-in @db/db [:analysis (h/file-path "/a.clj")])))
       (h/assert-submaps
         [{:code "missing-body-in-when"}
          {:code "invalid-arity"}]
         diagnostics)))
   (testing "opening a new file adding the ns"
     (swap! db/db merge {:settings {:auto-add-ns-to-new-files? true
-                                   :source-paths #{"/project/src"}}
+                                   :source-paths #{(h/file-path "/project/src")}}
                         :client-capabilities {:workspace {:workspace-edit {:document-changes true}}}
                         :project-root (h/file-uri "file:///project")})
     (alter-var-root #'db/edits-chan (constantly (async/chan 1)))
@@ -35,7 +35,7 @@
                            :end {:line 0, :character 0}}
                    :new-text "(ns foo.bar)"}]}]
         changes)
-      (is (some? (get-in @db/db [:analysis "/project/src/foo/bar.clj"]))))))
+      (is (some? (get-in @db/db [:analysis (h/file-path "/project/src/foo/bar.clj")]))))))
 
 (deftest document-symbol
   (let [code "(ns a) (def bar ::bar) (def ^:m baz 1)"
@@ -182,7 +182,7 @@
                changes))))
     (testing "on a namespace"
       (reset! db/db {:project-root (h/file-uri "file:///my-project")
-                     :settings {:source-paths #{"/my-project/src" "/my-project/test"}}
+                     :settings {:source-paths #{(h/file-path "/my-project/src") (h/file-path "/my-project/test")}}
                      :client-capabilities {:workspace {:workspace-edit {:document-changes true}}}})
       (h/load-code-and-locs "(ns foo.bar-baz)" (h/file-uri "file:///my-project/src/foo/bar_baz.clj"))
       (is (= {:document-changes
