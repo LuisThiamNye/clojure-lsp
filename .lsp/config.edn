@@ -3,5 +3,6 @@
                     and [[:inner 1]]
                     or [[:inner 1]]
                     are [[:inner 0]]}}
+ :log-path "/Users/luis/Desktop/clojure-lsp-log.txt"
  :semantic-tokens? true
  :use-metadata-for-privacy? true}

@@ -20,7 +20,7 @@
        io/file))
 
 (defn file->uri [file]
-  (-> file .toPath .toUri .toString))
+  (-> file .toPath .toUri str))
 
 (defn source-path->uri [source-path]
   (-> source-path

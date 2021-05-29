@@ -74,7 +74,7 @@
         (string/starts-with? uri "zipfile:/"))))
 
 (defn- uri-obj->filepath [uri]
-  (-> uri Paths/get .toAbsolutePath .toString))
+  (-> uri Paths/get .toAbsolutePath str))
 
 (defn- path->canonical-path [path]
   (-> path io/file .getCanonicalPath))
@@ -99,7 +99,7 @@
   (-> filepath io/file .toPath .toUri))
 
 (defn- uri-encode [scheme path]
-  (.toString (URI. scheme "" path nil)))
+  (str (URI. scheme "" path nil)))
 
 (defn filename->uri
   "Converts an absolute file path into a file URI string.
@@ -113,21 +113,21 @@
       (if jar-scheme?
         (uri-encode "jar:file" (str jar-uri-path "!/" nested-file))
         (uri-encode "zipfile" (str jar-uri-path "::" nested-file)))
-      (.toString (filepath->uri-obj filename)))))
+      (str (filepath->uri-obj filename)))))
 
 (defn relativize-filepath
   "Returns absolute `path` (string) as relative file path starting at `root` (string)
 
   The output representation path matches that of the operating system."
   [path root]
-  (.toString (.relativize (-> root io/file .toPath) (-> path io/file .toPath))))
+  (str (.relativize (-> root io/file .toPath) (-> path io/file .toPath))))
 
 (defn uri->relative-filepath
   "Returns `uri` as relative file path starting at `root` URI
 
   The output path representation matches that of the operating system."
   [uri root]
-  (.toString (.relativize (uri->path root) (uri->path uri))))
+  (str (.relativize (uri->path root) (uri->path uri))))
 
 (defn join-filepaths
   [& components]
