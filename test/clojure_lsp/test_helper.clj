@@ -13,11 +13,14 @@
 (defn file-path [path]
   (cond-> path windows?
           (-> (string/replace #"^/" "C:\\\\")
-              (string/replace "/" "\\"))))
+              (->> (re-matches #"(.+?)(\.jar:.*)?"))
+              (update 1 string/replace "/" "\\")
+              rest
+              (->> (apply str)))))
 
 (defn file-uri [uri]
   (cond-> uri windows?
-          (string/replace #"^file:///(?!\w:/)" "file:///C:/")))
+          (string/replace #"file:///(?!\w:/)" "file:///C:/")))
 
 (defn code [& strings] (string/join "\n" strings))
 

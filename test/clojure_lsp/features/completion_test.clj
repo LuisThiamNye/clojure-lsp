@@ -152,7 +152,7 @@
            (f.completion/resolve-item {:label "foo"
                                        :kind :variable
                                        :data {:name "foo"
-                                              :filename "/a.clj"
+                                              :filename (h/file-path "/a.clj")
                                               :name-row 1
                                               :name-col 13}}))))
   (testing "When element contains data of a element/knows the element"
@@ -160,7 +160,7 @@
            (f.completion/resolve-item {:label "foo"
                                        :kind :function
                                        :data {:name "foo"
-                                              :filename "/a.clj"
+                                              :filename (h/file-path "/a.clj")
                                               :name-row 1
                                               :name-col 13
                                               :ns "a"}})))))

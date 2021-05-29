@@ -74,7 +74,7 @@
         (string/starts-with? uri "zipfile:/"))))
 
 (defn- uri-obj->filepath [uri]
-  (-> uri Paths/get .toString))
+  (-> uri Paths/get .toAbsolutePath .toString))
 
 (defn- path->canonical-path [path]
   (-> path io/file .getCanonicalPath))

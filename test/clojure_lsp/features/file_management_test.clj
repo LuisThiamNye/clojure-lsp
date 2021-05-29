@@ -28,14 +28,14 @@
     (is (nil? (#'f.file-management/uri->namespace (h/file-uri "file:///user/project/src/foo/bar.clj")))))
   (testing "when it has a project root and a source-path"
     (swap! db/db merge {:settings {:auto-add-ns-to-new-files? true
-                                   :source-paths #{"/user/project/src"}}
+                                   :source-paths #{(h/file-path "/user/project/src")}}
                         :project-root (h/file-uri "file:///user/project")})
     (is (= "foo.bar"
            (#'f.file-management/uri->namespace (h/file-uri "file:///user/project/src/foo/bar.clj")))))
   (testing "when it has a project root a source-path on mono repos"
     (swap! db/db merge {:settings {:auto-add-ns-to-new-files? true
-                                   :source-paths #{"/user/project/src/clj"
-                                                   "/user/project/src/cljs"}}
+                                   :source-paths #{(h/file-path "/user/project/src/clj")
+                                                   (h/file-path "/user/project/src/cljs")}}
                         :project-root (h/file-uri "file:///user/project")})
     (is (= "foo.bar"
            (#'f.file-management/uri->namespace (h/file-uri "file:///user/project/src/clj/foo/bar.clj"))))))
