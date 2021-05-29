@@ -170,15 +170,15 @@
                                                 :newName "::other-name"}))]
         (is (= {(h/file-uri "file:///d.clj") [{:new-text "::other-name" :range (h/->range d-name-kw-start d-name-kw-stop)}]
                 (h/file-uri "file:///e.clj") [{:new-text "::dd/other-name" :range (h/->range kw-aliased-start kw-aliased-stop)}
-                                 {:new-text ":d.dd/other-name" :range (h/->range kw-unaliased-start kw-unaliased-stop)}]}
+                                              {:new-text ":d.dd/other-name" :range (h/->range kw-unaliased-start kw-unaliased-stop)}]}
                changes))))
     (testing "on alias changes namespaces inside file"
       (let [changes (:changes (handlers/rename {:textDocument (h/file-uri "file:///b.clj")
                                                 :position (h/->position balias-start)
                                                 :newName "xx"}))]
         (is (= {(h/file-uri "file:///b.clj") [{:new-text "xx" :range (h/->range balias-start balias-stop)}
-                                 {:new-text "xx/bar" :range (h/->range ba1-start bbar-stop)}
-                                 {:new-text "::xx/bar" :range (h/->range ba2-kw-start ba2-kw-stop)}]}
+                                              {:new-text "xx/bar" :range (h/->range ba1-start bbar-stop)}
+                                              {:new-text "::xx/bar" :range (h/->range ba2-kw-start ba2-kw-stop)}]}
                changes))))
     (testing "on a namespace"
       (reset! db/db {:project-root (h/file-uri "file:///my-project")
@@ -366,15 +366,15 @@
                              "(s/defn baz []\n"
                              "  (bar 2 3))\n"))
   (testing "references lens"
-    (is (= '({:range
-              {:start {:line 1 :character 5} :end {:line 1 :character 8}}
-              :data [(h/file-uri "file:///a.clj") 2 6]}
-             {:range
-              {:start {:line 2 :character 7} :end {:line 2 :character 11}}
-              :data [(h/file-uri "file:///a.clj") 3 8]}
-             {:range
-              {:start {:line 4 :character 6} :end {:line 4 :character 9}}
-              :data [(h/file-uri "file:///a.clj") 5 7]})
+    (is (= (list {:range
+                  {:start {:line 1 :character 5} :end {:line 1 :character 8}}
+                  :data [(h/file-uri "file:///a.clj") 2 6]}
+                 {:range
+                  {:start {:line 2 :character 7} :end {:line 2 :character 11}}
+                  :data [(h/file-uri "file:///a.clj") 3 8]}
+                 {:range
+                  {:start {:line 4 :character 6} :end {:line 4 :character 9}}
+                  :data [(h/file-uri "file:///a.clj") 5 7]})
            (handlers/code-lens {:textDocument (h/file-uri "file:///a.clj")})))))
 
 (deftest test-code-lens-resolve

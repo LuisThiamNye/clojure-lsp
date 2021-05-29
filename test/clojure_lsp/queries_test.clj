@@ -13,13 +13,13 @@
     (reset! db/db {})
     (h/load-code-and-locs "(ns foo.bar)" "file:///a.clj")
     (h/load-code-and-locs "(ns foo.bar)" "file:///b.clj")
-    (h/load-code-and-locs "(ns foo.bar)" "file:///some.jar:some-file.clj")
+    (h/load-code-and-locs "(ns foo.bar)" "jar:file:///some.jar!/some-file.clj")
     (is (= 2 (count (q/filter-project-analysis (:analysis @db/db))))))
   (testing "when dependency-scheme is jar"
     (swap! db/db merge {:settings {:dependency-scheme "jar"}})
     (h/load-code-and-locs "(ns foo.bar)" "file:///a.clj")
     (h/load-code-and-locs "(ns foo.bar)" "file:///b.clj")
-    (h/load-code-and-locs "(ns foo.bar)" "file:///some.jar:some-file.clj")
+    (h/load-code-and-locs "(ns foo.bar)" "jar:file:///some.jar!/some-file.clj")
     (is (= 2 (count (q/filter-project-analysis (:analysis @db/db)))))))
 
 (deftest external-analysis
@@ -27,25 +27,25 @@
     (reset! db/db {})
     (h/load-code-and-locs "(ns foo.bar)" "file:///a.clj")
     (h/load-code-and-locs "(ns foo.bar)" "file:///b.clj")
-    (h/load-code-and-locs "(ns foo.bar)" "file:///some.jar:some-file.clj")
+    (h/load-code-and-locs "(ns foo.bar)" "jar:file:///some.jar!/some-file.clj")
     (is (= 1 (count (q/filter-external-analysis (:analysis @db/db))))))
   (testing "when dependency-scheme is jar"
     (swap! db/db merge {:settings {:dependency-scheme "jar"}})
     (h/load-code-and-locs "(ns foo.bar)" "file:///a.clj")
     (h/load-code-and-locs "(ns foo.bar)" "file:///b.clj")
-    (h/load-code-and-locs "(ns foo.bar)" "file:///some.jar:some-file.clj")
+    (h/load-code-and-locs "(ns foo.bar)" "jar:file:///some.jar!/some-file.clj")
     (is (= 1 (count (q/filter-external-analysis (:analysis @db/db)))))))
 
 (deftest find-first-order-by-project-analysis
   (testing "with pred that applies for both project and external analysis"
     (reset! db/db {})
-    (h/load-code-and-locs "(ns foo.bar)" "file:///some.jar:some-file.clj")
+    (h/load-code-and-locs "(ns foo.bar)" "jar:file:///some.jar!/some-file.clj")
     (h/load-code-and-locs "(ns foo.bar)" "file:///a.clj")
     (let [element (#'q/find-first-order-by-project-analysis #(= 'foo.bar (:name %)) (:analysis @db/db))]
       (is (= (h/file-path "/a.clj") (:filename element)))))
   (testing "with pred that applies for both project and external analysis with multiple on project"
     (reset! db/db {})
-    (h/load-code-and-locs "(ns foo.bar)" "file:///some.jar:some-file.clj")
+    (h/load-code-and-locs "(ns foo.bar)" "jar:file:///some.jar!/some-file.clj")
     (h/load-code-and-locs "(ns foo.bar)" "file:///a.clj")
     (h/load-code-and-locs "(ns foo.bar)" "file:///b.clj")
     (let [element (#'q/find-first-order-by-project-analysis #(= 'foo.bar (:name %)) (:analysis @db/db))]
@@ -171,7 +171,7 @@
       (q/find-definition-from-cursor ana (h/file-path "/a.clj") alias-r alias-c))))
 
 (deftest find-definition-from-cursor-when-duplicate-from-external-analysis
-  (let [_ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "file:///some.jar:some-jar.clj")
+  (let [_ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "jar:file:///some.jar!/some-jar.clj")
         _ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "file:///a.clj")
         [[bar-r bar-c]] (h/load-code-and-locs (h/code "(ns baz (:require [foo :as f]))"
                                                       "|f/bar") "file:///b.clj")
@@ -182,8 +182,8 @@
 
 (deftest find-definition-from-cursor-when-it-has-same-namespace-from-clj-and-cljs
   (testing "when on a clj file"
-    (let [_ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "file:///some.jar:some-jar.clj")
-          _ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "file:///some.jar:other-jar.cljs")
+    (let [_ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "jar:file:///some.jar!/some-jar.clj")
+          _ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "jar:file:///some.jar!/other-jar.cljs")
           [[bar-r bar-c]] (h/load-code-and-locs (h/code "(ns baz (:require [foo :as f]))"
                                                         "|f/bar") "file:///b.clj")
           ana (:analysis @db/db)]
@@ -191,8 +191,8 @@
         {:name 'bar :filename (h/file-path "/some.jar:some-jar.clj")}
         (q/find-definition-from-cursor ana (h/file-path "/b.clj") bar-r bar-c))))
   (testing "when on a cljs file"
-    (let [_ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "file:///some.jar:some-jar.clj")
-          _ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "file:///some.jar:other-jar.cljs")
+    (let [_ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "jar:file:///some.jar!/some-jar.clj")
+          _ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "jar:file:///some.jar!/other-jar.cljs")
           [[bar-r bar-c]] (h/load-code-and-locs (h/code "(ns baz (:require [foo :as f]))"
                                                         "|f/bar") "file:///b.cljs")
           ana (:analysis @db/db)]
@@ -200,8 +200,8 @@
         {:name 'bar :filename (h/file-path "/some.jar:other-jar.cljs")}
         (q/find-definition-from-cursor ana (h/file-path "/b.cljs") bar-r bar-c))))
   (testing "when on a cljc file"
-    (let [_ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "file:///some.jar:some-jar.clj")
-          _ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "file:///some.jar:other-jar.cljs")
+    (let [_ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "jar:file:///some.jar!/some-jar.clj")
+          _ (h/load-code-and-locs (h/code "(ns foo) (def bar)") "jar:file:///some.jar!/other-jar.cljs")
           [[bar-r bar-c]] (h/load-code-and-locs (h/code "(ns baz (:require [foo :as f]))"
                                                         "|f/bar") "file:///b.cljc")
           ana (:analysis @db/db)]

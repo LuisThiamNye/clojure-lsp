@@ -148,7 +148,7 @@
     (is (= {:label "Some" :kind :module}
            (f.completion/resolve-item {:label "Some" :kind :module}))))
   (testing "When element contains data of a element/knows the element"
-    (is (= {:label "foo" :documentation ["a/foo\n\n----\nSome docs\n----\n/a.clj"] :kind :variable}
+    (is (= {:label "foo" :documentation [(str "a/foo\n\n----\nSome docs\n----\n" (h/file-path "/a.clj"))] :kind :variable}
            (f.completion/resolve-item {:label "foo"
                                        :kind :variable
                                        :data {:name "foo"
@@ -156,7 +156,7 @@
                                               :name-row 1
                                               :name-col 13}}))))
   (testing "When element contains data of a element/knows the element"
-    (is (= {:label "foo" :documentation ["a/foo\n\n----\nSome docs\n----\n/a.clj"] :kind :function}
+    (is (= {:label "foo" :documentation [(str "a/foo\n\n----\nSome docs\n----\n" (h/file-path "/a.clj"))] :kind :function}
            (f.completion/resolve-item {:label "foo"
                                        :kind :function
                                        :data {:name "foo"
