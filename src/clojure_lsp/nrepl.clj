@@ -6,6 +6,8 @@
 
 (def start-server (dynaload 'nrepl.server/start-server))
 
+(def handler nil #_(dynaload 'cider.nrepl/cider-nrepl-handler))
+
 (defn ^:private find-dot-nrepl-port-file []
   (try
     (slurp ".nrepl-port")
@@ -17,7 +19,7 @@
 
 (defn setup-nrepl []
   (try
-    (when-let [port (repl-port)]
+    (when-let [port (repl-port)] #_[{:keys [port]} (start-server :handler handler :port 7888)]
       (log/info "====== LSP nrepl server started on port" port)
       (swap! db/db assoc :port port))
     (catch Throwable _

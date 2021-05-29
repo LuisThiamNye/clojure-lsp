@@ -107,13 +107,16 @@
   Jar files are given the `jar:file` or `zipfile` scheme depending on the
   `:dependency-scheme` setting."
   [^String filename]
-  (let [jar-scheme? (= "jar" (get-in @db/db [:settings :dependency-scheme]))
-        [_ jar-filepath nested-file] (re-find #"^(.*\.jar):(.*)" filename)]
-    (if-let [jar-uri-path (some-> jar-filepath (-> filepath->uri-obj .getPath))]
-      (if jar-scheme?
-        (uri-encode "jar:file" (str jar-uri-path "!/" nested-file))
-        (uri-encode "zipfile" (str jar-uri-path "::" nested-file)))
-      (str (filepath->uri-obj filename)))))
+  (try (let [jar-scheme? (= "jar" (get-in @db/db [:settings :dependency-scheme]))
+         [_ jar-filepath nested-file] (re-find #"^(.*\.jar):(.*)" filename)]
+     (if-let [jar-uri-path (some-> jar-filepath (-> filepath->uri-obj .getPath))]
+       (if jar-scheme?
+         (uri-encode "jar:file" (str jar-uri-path "!/" nested-file))
+         (uri-encode "zipfile" (str jar-uri-path "::" nested-file)))
+       (str (filepath->uri-obj filename))))
+       (catch Exception e
+         (log/error "failed to convert" filename)
+         (log/error e))))
 
 (defn relativize-filepath
   "Returns absolute `path` (string) as relative file path starting at `root` (string)

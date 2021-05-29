@@ -44,15 +44,18 @@
                  :exec-args {:jar "clojure-lsp.jar"
                              :jvm-opts ["-Xmx2g" "-server"]
                              :name "clojure-lsp"}}
+           :bin-debug {:replace-deps {com.github.ericdallo/deps-bin {:mvn/version "0.1.1"}}
+                 :exec-fn deps-bin.deps-bin/bin
+                 :exec-args {:jar "clojure-lsp-debug.jar"
+                             :jvm-opts ["-Xmx2g" "-server"]
+                             :name "clojure-lsp-debug"}}
            :debug {:extra-deps {nrepl/nrepl {:mvn/version "0.8.3"}}}
            :debug-jar {:replace-deps {com.github.seancorfield/depstar {:mvn/version "2.0.216"}}
                        :exec-fn hf.depstar/uberjar
-                       :exec-args {:jar "clojure-lsp.jar"
+                       :exec-args {:jar "clojure-lsp-debug.jar"
                                    :aot true
                                    :jvm-opts ["-Xmx2g" "-server"]
                                    :main-class clojure-lsp.main
                                    :aliases [:debug]}}
            :run {:main-opts ["-m" "clojure-lsp.main"]
-                 :jvm-opts ["-Xmx2g" "-server"]}
-           :local-run {:main-opts ["-m" "local.main"]
-                       :jvm-opts ["-Xmx2g" "-server"]}}}
+                 :jvm-opts ["-Xmx2g" "-server"]}}}
