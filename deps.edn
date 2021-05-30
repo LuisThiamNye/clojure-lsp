@@ -41,13 +41,13 @@
                                "-Dclojure.spec.skip-macros=true"]}
            :bin {:replace-deps {com.github.ericdallo/deps-bin {:mvn/version "0.1.1"}}
                  :exec-fn deps-bin.deps-bin/bin
-                 :exec-args {:jar "clojure-lsp-debug.jar"
+                 :exec-args {:jar "clojure-lsp.jar"
                              :jvm-opts ["-Xmx2g" "-server"]
                              :name "clojure-lsp"}}
            :debug {:extra-deps {nrepl/nrepl {:mvn/version "0.8.3"}}}
            :debug-jar {:replace-deps {com.github.seancorfield/depstar {:mvn/version "2.0.216"}}
                        :exec-fn hf.depstar/uberjar
-                       :exec-args {:jar "clojure-lsp-debug.jar"
+                       :exec-args {:jar "clojure-lsp.jar"
                                    :aot true
                                    :jvm-opts ["-Xmx2g" "-server"]
                                    :main-class clojure-lsp.main

@@ -14,9 +14,9 @@
 
 (defn ^:private repl-port []
   (or (find-dot-nrepl-port-file)
-      (:port (start-server :handler handler))))
+      (:port (start-server :handler handler :port 7888))))
 
-(defn setup-nrepls []
+(defn setup-nrepl []
   (try
     (when-let [port (repl-port)]
       (log/info "====== LSP nrepl server started on port" port)

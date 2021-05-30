@@ -7,8 +7,7 @@
     [clojure.string :as string]
     [taoensso.timbre :as log])
   (:import
-    [java.net URI]
-    [java.net URL]
+    [java.net URI URL JarURLConnection]
     [java.nio.file Paths]))
 
 (defn assoc-some
@@ -74,7 +73,7 @@
         (string/starts-with? uri "zipfile:/"))))
 
 (defn- uri-obj->filepath [uri]
-  (-> uri Paths/get .toAbsolutePath str))
+  (-> uri Paths/get .toAbsolutePath .toString))
 
 (defn- path->canonical-path [path]
   (-> path io/file .getCanonicalPath))
@@ -83,10 +82,10 @@
   "Converts a URI string into an absolute file path.
 
   The output path representation matches that of the operating system."
-  [uri]
+  [^String uri]
   (if (string/starts-with? uri "jar:")
-    (let [conn (.openConnection (URL. uri))
-          jar-file (-> conn .getJarFileURL .toURI uri-obj->filepath)]
+    (let [conn ^JarURLConnection (cast JarURLConnection (.openConnection (URL. uri)))
+          jar-file (uri-obj->filepath ^URI (.toURI ^URL (.getJarFileURL conn)))]
       (str jar-file ":" (.getEntryName conn)))
     (let [uri-obj (URI. uri)
           [_ jar-uri-path nested-file] (when (= "zipfile" (.getScheme uri-obj))
@@ -95,11 +94,11 @@
         (str (path->canonical-path jar-uri-path) ":" nested-file)
         (uri-obj->filepath uri-obj)))))
 
-(defn- filepath->uri-obj [filepath]
+(defn- filepath->uri-obj ^URI [filepath]
   (-> filepath io/file .toPath .toUri))
 
 (defn- uri-encode [scheme path]
-  (str (URI. scheme "" path nil)))
+  (.toString (URI. scheme "" path nil)))
 
 (defn filename->uri
   "Converts an absolute file path into a file URI string.
@@ -107,34 +106,31 @@
   Jar files are given the `jar:file` or `zipfile` scheme depending on the
   `:dependency-scheme` setting."
   [^String filename]
-  (try (let [jar-scheme? (= "jar" (get-in @db/db [:settings :dependency-scheme]))
-         [_ jar-filepath nested-file] (re-find #"^(.*\.jar):(.*)" filename)]
-     (if-let [jar-uri-path (some-> jar-filepath (-> filepath->uri-obj .getPath))]
-       (if jar-scheme?
-         (uri-encode "jar:file" (str jar-uri-path "!/" nested-file))
-         (uri-encode "zipfile" (str jar-uri-path "::" nested-file)))
-       (str (filepath->uri-obj filename))))
-       (catch Exception e
-         (log/error "failed to convert" filename)
-         (log/error e))))
+  (let [jar-scheme? (= "jar" (get-in @db/db [:settings :dependency-scheme]))
+        [_ jar-filepath nested-file] (re-find #"^(.*\.jar):(.*)" filename)]
+    (if-let [jar-uri-path (some-> jar-filepath (-> filepath->uri-obj .getPath))]
+      (if jar-scheme?
+        (uri-encode "jar:file" (str jar-uri-path "!/" nested-file))
+        (uri-encode "zipfile" (str jar-uri-path "::" nested-file)))
+      (.toString (filepath->uri-obj filename)))))
 
 (defn relativize-filepath
   "Returns absolute `path` (string) as relative file path starting at `root` (string)
 
   The output representation path matches that of the operating system."
   [path root]
-  (str (.relativize (-> root io/file .toPath) (-> path io/file .toPath))))
+  (.toString (.relativize (-> root io/file .toPath) (-> path io/file .toPath))))
 
 (defn uri->relative-filepath
   "Returns `uri` as relative file path starting at `root` URI
 
   The output path representation matches that of the operating system."
   [uri root]
-  (str (.relativize (uri->path root) (uri->path uri))))
+  (.toString (.relativize (uri->path root) (uri->path uri))))
 
 (defn join-filepaths
   [& components]
-  (.getPath (apply io/file components)))
+  (.getPath ^java.io.File (apply io/file components)))
 
 (defn ->range [{:keys [name-row name-end-row name-col name-end-col row end-row col end-col] :as element}]
   (when element
