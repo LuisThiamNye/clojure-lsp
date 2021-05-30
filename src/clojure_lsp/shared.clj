@@ -84,7 +84,7 @@
   The output path representation matches that of the operating system."
   [^String uri]
   (if (string/starts-with? uri "jar:")
-    (let [conn ^JarURLConnection (cast JarURLConnection (.openConnection (URL. uri)))
+    (let [conn ^JarURLConnection (.openConnection (URL. uri))
           jar-file (uri-obj->filepath ^URI (.toURI ^URL (.getJarFileURL conn)))]
       (str jar-file ":" (.getEntryName conn)))
     (let [uri-obj (URI. uri)
