@@ -44,12 +44,12 @@
            (recur)
            ~@body)))))
 
-(defn initialize [project-root client-capabilities client-settings]
-  (when project-root
-    (crawler/initialize-project project-root client-capabilities client-settings)))
+(defn initialize [project-root-uri client-capabilities client-settings]
+  (when project-root-uri
+    (crawler/initialize-project (interop/sanitize-uri project-root-uri) client-capabilities client-settings)))
 
 (defn did-open [{:keys [textDocument]}]
-  (let [uri (:uri textDocument)
+  (let [uri (-> textDocument :uri interop/sanitize-uri)
         text (:text textDocument)]
     (f.file-management/did-open uri text))
   nil)
@@ -63,10 +63,10 @@
       (swap! db/db #(update % :documents dissoc textDocument))))
 
 (defn did-change [{:keys [textDocument contentChanges]}]
-  (f.file-management/did-change (:uri textDocument) contentChanges (:version textDocument)))
+  (f.file-management/did-change (-> textDocument :uri interop/sanitize-uri) contentChanges (:version textDocument)))
 
 (defn did-change-watched-files [changes]
-  (let [uris (map :uri (filter (comp #{:deleted} :type) changes))]
+  (let [uris (map (comp interop/sanitize-uri :uri) (filter (comp #{:deleted} :type) changes))]
     (swap! db/db (fn [db]
                    (-> db
                        (update :documents #(apply dissoc % uris))
@@ -135,7 +135,7 @@
 (defn ^:private server-info []
   (let [db @db/db]
     {:type :info
-     :message (with-out-str (pprint/pprint {:project-root (:project-root db)
+     :message (with-out-str (pprint/pprint {:project-root (:project-root-uri db)
                                             :project-settings (:project-settings db)
                                             :client-settings (:client-settings db)
                                             :port (or (:port db)
@@ -266,24 +266,24 @@
 
 (defn prepare-call-hierarchy
   [{:keys [textDocument position]}]
-  (let [project-root (:project-root @db/db)]
+  (let [project-root-uri (:project-root-uri @db/db)]
     (f.call-hierarchy/prepare textDocument
                               (inc (:line position))
                               (inc (:character position))
-                              project-root)))
+                              project-root-uri)))
 
 (defn call-hierarchy-incoming
   [{:keys [item]}]
-  (let [uri (:uri item)
+  (let [uri (-> item :uri interop/sanitize-uri)
         row (inc (-> item :range :start :line))
         col (inc (-> item :range :start :character))
-        project-root (:project-root @db/db)]
-    (f.call-hierarchy/incoming uri row col project-root)))
+        project-root-uri (:project-root-uri @db/db)]
+    (f.call-hierarchy/incoming uri row col project-root-uri)))
 
 (defn call-hierarchy-outgoing
   [{:keys [item]}]
-  (let [uri (:uri item)
+  (let [uri (-> item :uri interop/sanitize-uri)
         row (inc (-> item :range :start :line))
         col (inc (-> item :range :start :character))
-        project-root (:project-root @db/db)]
-    (f.call-hierarchy/outgoing uri row col project-root)))
+        project-root-uri (:project-root-uri @db/db)]
+    (f.call-hierarchy/outgoing uri row col project-root-uri)))

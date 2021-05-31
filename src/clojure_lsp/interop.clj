@@ -1,12 +1,13 @@
 (ns clojure-lsp.interop
   (:require
+    [clojure-lsp.shared :as shared]
     [clojure.data.json :as json]
     [clojure.java.data :as j]
     [clojure.spec.alpha :as s]
     [clojure.string :as string]
-    [taoensso.timbre :as log]
     [clojure.walk :as walk]
-    [medley.core :as medley])
+    [medley.core :as medley]
+    [taoensso.timbre :as log])
   (:import
     (com.google.gson JsonElement)
     (org.eclipse.lsp4j
@@ -49,8 +50,14 @@
       WorkspaceEdit)
     (org.eclipse.lsp4j.jsonrpc.messages Either)))
 
+(defn sanitize-uri [uri]
+  (-> uri
+      shared/uri->filename
+      (string/replace-first #"^[a-z]:\\" string/upper-case)
+      shared/filename->uri))
+
 (defn document->uri [^TextDocumentIdentifier document]
-  (.getUri document))
+  (sanitize-uri (.getUri document)))
 
 (defmethod j/from-java DiagnosticSeverity [^DiagnosticSeverity instance]
   (-> instance .name .toLowerCase keyword))
