@@ -23,6 +23,7 @@
     [clojure-lsp.queries :as q]
     [clojure-lsp.shared :as shared]
     [clojure.pprint :as pprint]
+    [clojure.string :as string]
     [medley.core :as medley]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]
@@ -46,7 +47,16 @@
 
 (defn initialize [project-root-uri client-capabilities client-settings]
   (when project-root-uri
-    (crawler/initialize-project project-root-uri client-capabilities client-settings)))
+    (swap! db/db assoc
+           :client-settings client-settings
+           :settings (cond-> client-settings
+                       (not (map? (:uri-format client-settings)))
+                       (assoc :uri-format
+                              {:upper-case-drive-letter? (->> project-root-uri URI. .getPath
+                                                              (re-find #"^/[A-Z]:/")
+                                                              boolean)
+                               :encode-colon-in-path? (string/includes? project-root-uri "%3A")})))
+    (crawler/initialize-project project-root-uri client-capabilities)))
 
 (defn did-open [{:keys [textDocument]}]
   (let [uri (:uri textDocument)
