@@ -100,7 +100,7 @@
 (defn- uri-encode [scheme path]
   (.toString (URI. scheme "" path nil)))
 
-(defn- conform-uri [uri]
+(defn conform-uri [uri]
   (let [format-settings (get-in @db/db [:settings :uri-format])
         [match scheme+auth path] (re-matches #"([a-z:]+//.*?)(/.*)" uri)]
     (when-not match
@@ -111,7 +111,7 @@
                                    (if (:upper-case-drive-letter? format-settings)
                                      string/upper-case
                                      string/lower-case))
-             (cond-> (:encode-colon-in-path? format-settings)
+             (cond-> (:encode-colons-in-path? format-settings)
                (string/replace ":" "%3A"))))))
 
 (defn filename->uri

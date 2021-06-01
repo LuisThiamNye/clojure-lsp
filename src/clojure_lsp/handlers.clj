@@ -31,6 +31,7 @@
   (:import
     [java.net
      URL
+     URI
      JarURLConnection]))
 
 (def ^:private full-file-range
@@ -55,7 +56,7 @@
                               {:upper-case-drive-letter? (->> project-root-uri URI. .getPath
                                                               (re-find #"^/[A-Z]:/")
                                                               boolean)
-                               :encode-colon-in-path? (string/includes? project-root-uri "%3A")})))
+                               :encode-colons-in-path? (string/includes? project-root-uri "%3A")})))
     (crawler/initialize-project project-root-uri client-capabilities)))
 
 (defn did-open [{:keys [textDocument]}]

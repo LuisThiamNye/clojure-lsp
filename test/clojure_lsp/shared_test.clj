@@ -42,6 +42,18 @@
     (is (= (when h/windows? "c:\\c.clj")
            (when h/windows? (shared/uri->filename "file:///c:/c.clj"))))))
 
+(deftest conform-uri
+  (testing "lower case drive letter and encode colons"
+    (reset! db/db {:settings {:uri-format {:encode-colons-in-path?   true
+                                           :upper-case-drive-letter? false}}})
+    (is (= "file:///c%3A/path"
+           (shared/conform-uri "file:///C:/path"))))
+  (testing "upper case drive letter and do not encode colons"
+    (reset! db/db {:settings {:uri-format {:encode-colons-in-path?   false
+                                           :upper-case-drive-letter? true}}})
+    (is (= "file:///C:/path"
+           (shared/conform-uri "file:///c:/path")))))
+
 (deftest relativize-filepath
   (is (= (h/file-path "some/path.clj")
          (shared/relativize-filepath
