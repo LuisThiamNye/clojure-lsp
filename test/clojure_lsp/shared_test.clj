@@ -6,23 +6,6 @@
     [clojure.string :as string]
     [clojure.test :refer [deftest is testing]]))
 
-(deftest filename->uri
-  (testing "when it is not a jar"
-    (reset! db/db {})
-    (is (= (if h/windows? "file:///c:/some%20project/foo/bar_baz.clj" "file:///some%20project/foo/bar_baz.clj")
-           (shared/filename->uri (h/file-path "/some project/foo/bar_baz.clj")))))
-  (testing "when it is a jar via zipfile"
-    (reset! db/db {})
-    (is (= (if h/windows? "zipfile:///c:/home/some/.m2/some-jar.jar::clojure/core.clj" "zipfile:///home/some/.m2/some-jar.jar::clojure/core.clj")
-           (shared/filename->uri (h/file-path "/home/some/.m2/some-jar.jar:clojure/core.clj")))))
-  (testing "when it is a jar via jarfile"
-    (reset! db/db {:settings {:dependency-scheme "jar"}})
-    (is (= (if h/windows? "jar:file:///c:/home/some/.m2/some-jar.jar!/clojure/core.clj" "jar:file:///home/some/.m2/some-jar.jar!/clojure/core.clj")
-           (shared/filename->uri (h/file-path "/home/some/.m2/some-jar.jar:clojure/core.clj")))))
-  (testing "Windows URIs"
-    (is (= (when h/windows? "file:///c:/c.clj")
-           (when h/windows? (shared/filename->uri "c:\\c.clj"))))))
-
 (deftest uri->filename
   (testing "should decode special characters in file URI"
     (is (= (h/file-path "/path+/encoded characters!")
@@ -41,6 +24,24 @@
            (when h/windows? (shared/uri->filename "file:/c:/c.clj"))))
     (is (= (when h/windows? "c:\\c.clj")
            (when h/windows? (shared/uri->filename "file:///c:/c.clj"))))))
+
+(deftest filename->uri
+  (testing "when it is not a jar"
+    (reset! db/db {})
+    (is (= (if h/windows? "file:///c:/some%20project/foo/bar_baz.clj" "file:///some%20project/foo/bar_baz.clj")
+           (shared/filename->uri (h/file-path "/some project/foo/bar_baz.clj")))))
+  (testing "when it is a jar via zipfile"
+    (reset! db/db {})
+    (is (= (if h/windows? "zipfile:///c:/home/some/.m2/some-jar.jar::clojure/core.clj" "zipfile:///home/some/.m2/some-jar.jar::clojure/core.clj")
+           (shared/filename->uri (h/file-path "/home/some/.m2/some-jar.jar:clojure/core.clj")))))
+  (testing "when it is a jar via jarfile"
+    (reset! db/db {:settings {:dependency-scheme "jar"}})
+    (is (= (if h/windows? "jar:file:///c:/home/some/.m2/some-jar.jar!/clojure/core.clj" "jar:file:///home/some/.m2/some-jar.jar!/clojure/core.clj")
+           (shared/filename->uri (h/file-path "/home/some/.m2/some-jar.jar:clojure/core.clj")))))
+  (testing "Windows URIs"
+    (reset! db/db {})
+    (is (= (when h/windows? "file:///c:/c.clj")
+           (when h/windows? (shared/filename->uri "c:\\c.clj"))))))
 
 (deftest conform-uri
   (testing "lower case drive letter and encode colons"

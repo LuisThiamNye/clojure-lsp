@@ -73,7 +73,8 @@
         (string/starts-with? uri "zipfile:/"))))
 
 (defn- uri-obj->filepath [uri]
-  (-> uri Paths/get .toAbsolutePath .toString))
+  (-> uri Paths/get .toAbsolutePath .toString
+      (string/replace #"^[a-z]:\\" string/upper-case)))
 
 (defn- path->canonical-path [path]
   (-> path io/file .getCanonicalPath))

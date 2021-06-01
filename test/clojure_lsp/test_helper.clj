@@ -12,7 +12,7 @@
 
 (defn file-path [path]
   (cond-> path windows?
-          (-> (string/replace-first #"^/" "c:\\\\")
+          (-> (string/replace-first #"^/" "C:\\\\")
               (->> (re-matches #"(.+?)(\.jar:.*)?"))
               (update 1 string/replace "/" "\\")
               rest
