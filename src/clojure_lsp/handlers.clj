@@ -46,10 +46,10 @@
 
 (defn initialize [project-root-uri client-capabilities client-settings]
   (when project-root-uri
-    (crawler/initialize-project (interop/sanitize-uri project-root-uri) client-capabilities client-settings)))
+    (crawler/initialize-project project-root-uri client-capabilities client-settings)))
 
 (defn did-open [{:keys [textDocument]}]
-  (let [uri (-> textDocument :uri interop/sanitize-uri)
+  (let [uri (:uri textDocument)
         text (:text textDocument)]
     (f.file-management/did-open uri text))
   nil)
@@ -63,10 +63,10 @@
       (swap! db/db #(update % :documents dissoc textDocument))))
 
 (defn did-change [{:keys [textDocument contentChanges]}]
-  (f.file-management/did-change (-> textDocument :uri interop/sanitize-uri) contentChanges (:version textDocument)))
+  (f.file-management/did-change (:uri textDocument) contentChanges (:version textDocument)))
 
 (defn did-change-watched-files [changes]
-  (let [uris (map (comp interop/sanitize-uri :uri) (filter (comp #{:deleted} :type) changes))]
+  (let [uris (map :uri (filter (comp #{:deleted} :type) changes))]
     (swap! db/db (fn [db]
                    (-> db
                        (update :documents #(apply dissoc % uris))
@@ -274,7 +274,7 @@
 
 (defn call-hierarchy-incoming
   [{:keys [item]}]
-  (let [uri (-> item :uri interop/sanitize-uri)
+  (let [uri (:uri item)
         row (inc (-> item :range :start :line))
         col (inc (-> item :range :start :character))
         project-root-uri (:project-root-uri @db/db)]
@@ -282,7 +282,7 @@
 
 (defn call-hierarchy-outgoing
   [{:keys [item]}]
-  (let [uri (-> item :uri interop/sanitize-uri)
+  (let [uri (:uri item)
         row (inc (-> item :range :start :line))
         col (inc (-> item :range :start :character))
         project-root-uri (:project-root-uri @db/db)]

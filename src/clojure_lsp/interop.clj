@@ -50,14 +50,8 @@
       WorkspaceEdit)
     (org.eclipse.lsp4j.jsonrpc.messages Either)))
 
-(defn sanitize-uri [uri]
-  (-> uri
-      shared/uri->filename
-      (string/replace-first #"^[a-z]:\\" string/upper-case)
-      shared/filename->uri))
-
 (defn document->uri [^TextDocumentIdentifier document]
-  (sanitize-uri (.getUri document)))
+  (.getUri document))
 
 (defmethod j/from-java DiagnosticSeverity [^DiagnosticSeverity instance]
   (-> instance .name .toLowerCase keyword))
