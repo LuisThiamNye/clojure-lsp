@@ -20,9 +20,9 @@
     (is (= (str (h/file-path "/Users/clojure-1.9.0.jar") ":clojure/string.clj")
            (shared/uri->filename (h/file-uri "jar:file:///Users/clojure-1.9.0.jar!/clojure/string.clj")))))
   (testing "Windows URIs"
-    (is (= (when h/windows? "c:\\c.clj")
+    (is (= (when h/windows? "C:\\c.clj")
            (when h/windows? (shared/uri->filename "file:/c:/c.clj"))))
-    (is (= (when h/windows? "c:\\c.clj")
+    (is (= (when h/windows? "C:\\c.clj")
            (when h/windows? (shared/uri->filename "file:///c:/c.clj"))))))
 
 (deftest filename->uri
@@ -68,7 +68,7 @@
 (deftest join-filepaths
   (is (= (h/file-path "/users/melon/toasty/onion")
          (if h/windows?
-           (shared/join-filepaths "c:\\users" "melon\\toasty" "onion")
+           (shared/join-filepaths (h/file-path "/users") "melon\\toasty" "onion")
            (shared/join-filepaths (h/file-path "/users") "melon/toasty" "onion")))))
 
 (deftest ->range-test
