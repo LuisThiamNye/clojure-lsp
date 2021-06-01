@@ -146,7 +146,7 @@
 (defn ^:private server-info []
   (let [db @db/db]
     {:type :info
-     :message (with-out-str (pprint/pprint {:project-root (:project-root-uri db)
+     :message (with-out-str (pprint/pprint {:project-root-uri (:project-root-uri db)
                                             :project-settings (:project-settings db)
                                             :client-settings (:client-settings db)
                                             :port (or (:port db)

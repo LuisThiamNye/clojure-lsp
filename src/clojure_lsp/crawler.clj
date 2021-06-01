@@ -226,7 +226,7 @@
     (when-let [log-path (:log-path settings)]
       (logging/update-log-path log-path))
     (swap! db/db assoc
-           :project-root project-root-uri
+           :project-root-uri project-root-uri
            :project-settings project-settings
            :settings settings
            :client-capabilities client-capabilities)
